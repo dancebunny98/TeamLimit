@@ -119,12 +119,18 @@ public sealed class TeamLimitPlugin : BasePlugin, IPluginConfig<TeamLimitConfig>
 
     private static int GetMaxPlayersPerTeam()
     {
-        // Keep spectator/reserved connections outside the playable team limit.
-        // Configure sv_maxplayers above sv_visiblemaxplayers when spectators
-        // should be able to stay connected while all game slots are occupied.
-        var maxPlayers = ReadServerPlayerLimit("sv_visiblemaxplayers");
-        if (maxPlayers <= 0)
-            maxPlayers = ReadServerPlayerLimit("sv_maxplayers");
+        // Use visible slots for a deliberate spectator reserve, but ignore a
+        // value that is too small to represent the playable server capacity.
+        var serverMaxPlayers = ReadServerPlayerLimit("sv_maxplayers");
+        var visibleMaxPlayers = ReadServerPlayerLimit("sv_visiblemaxplayers");
+        if (serverMaxPlayers <= 0)
+            serverMaxPlayers = Server.MaxPlayers;
+
+        var maxPlayers = serverMaxPlayers;
+        if (serverMaxPlayers <= 0)
+            maxPlayers = visibleMaxPlayers;
+        else if (visibleMaxPlayers > serverMaxPlayers / 2 && visibleMaxPlayers < serverMaxPlayers)
+            maxPlayers = visibleMaxPlayers;
 
         // Keep the teams equal if a server exposes an odd number of slots.
         return Math.Max(1, maxPlayers / 2);
