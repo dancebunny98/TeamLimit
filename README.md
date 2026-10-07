@@ -1,11 +1,11 @@
 # Team Limit (CounterStrikeSharp)
 
-Плагин для CS2, который автоматически ограничивает каждую команду половиной доступных серверных слотов.
+A plugin for CS2 that automatically limits each team to half of the available server slots.
 
-Лимит читается из `sv_maxplayers` (с резервом на `sv_visiblemaxplayers`) и считается как целая половина значения: на сервере с 4 слотами максимум 2 игрока в каждой команде, на сервере с 24 слотами максимум 12. Дополнительные настройки для размера команд не нужны.
+The limit is read from 'sv_maxplayers' (with a margin of 'sv_visiblemaxplayers') and is counted as a whole half of the value: on a server with 4 slots, a maximum of 2 players per team, on a server with 24 slots, a maximum of 12. No additional settings are needed for team sizes.
 
-## Установка
+## Install
 
-1. Соберите проект через `dotnet build -c Release`.
-2. Скопируйте `bin/Release/net10.0/TeamLimit.dll` в `game/csgo/addons/counterstrikesharp/plugins/TeamLimit/`.
-3. При первом запуске будет создан конфиг `TeamLimit.json` для остальных параметров плагина.
+1. Build the project via 'dotnet build -c Release'. 
+2. Copy 'bin/Release/net10.0/TeamLimit.dll' to 'game/csgo/addons/counterstrikesharp/plugins/TeamLimit/'. 
+3. On the first launch, a 'TeamLimit.json' config will be created for the rest of the plugin parameters.
