@@ -1,3 +1,9 @@
 bin/
 obj/
-.dotnet-home/
+dist/
+.vs/
+.idea/
+*.user
+*.suo
+*.nupkg
+TestResults/

@@ -4,6 +4,7 @@ using CounterStrikeSharp.API.Modules.Commands;
 using CounterStrikeSharp.API.Modules.Entities;
 using CounterStrikeSharp.API.Modules.Cvars;
 using CounterStrikeSharp.API.Modules.Utils;
+using System.Text.Json;
 
 namespace TeamLimit;
 
@@ -12,7 +13,8 @@ public sealed class TeamLimitConfig : IBasePluginConfig
     public int Version { get; set; } = 1;
     public bool EnforceOnRoundStart { get; set; } = true;
     public bool CountBots { get; set; } = true;
-    public string OverflowMessage { get; set; } = "Команда уже заполнена (максимум {0} игрока). Вы переведены в наблюдатели.";
+    public string Language { get; set; } = "ru";
+    public string? OverflowMessage { get; set; }
 }
 
 public sealed class TeamLimitPlugin : BasePlugin, IPluginConfig<TeamLimitConfig>
@@ -20,9 +22,10 @@ public sealed class TeamLimitPlugin : BasePlugin, IPluginConfig<TeamLimitConfig>
     public override string ModuleName => "Team Limit";
     public override string ModuleVersion => "1.0.0";
     public override string ModuleAuthor => "OpenAI";
-    public override string ModuleDescription => "Ограничивает команды половиной слотов сервера.";
+    public override string ModuleDescription => "Limits each team to half of the available server slots.";
 
     public TeamLimitConfig Config { get; set; } = new();
+    private Dictionary<string, string> _translations = new();
 
     public void OnConfigParsed(TeamLimitConfig config)
     {
@@ -31,6 +34,7 @@ public sealed class TeamLimitPlugin : BasePlugin, IPluginConfig<TeamLimitConfig>
 
     public override void Load(bool hotReload)
     {
+        LoadTranslations();
         RegisterEventHandler<EventPlayerTeam>(OnPlayerTeam);
         RegisterEventHandler<EventRoundStart>(OnRoundStart);
         AddCommandListener("jointeam", OnJoinTeam);
@@ -106,7 +110,19 @@ public sealed class TeamLimitPlugin : BasePlugin, IPluginConfig<TeamLimitConfig>
     {
         var maxPlayersPerTeam = GetMaxPlayersPerTeam();
         player.ChangeTeam(CsTeam.Spectator);
-        player.PrintToChat($"\u0001{string.Format(Config.OverflowMessage, maxPlayersPerTeam)}");
+        var message = Config.OverflowMessage ?? _translations.GetValueOrDefault("team_full", "team_full");
+        player.PrintToChat($"\u0001{string.Format(message, maxPlayersPerTeam)}");
+    }
+
+    private void LoadTranslations()
+    {
+        var language = string.Equals(Config.Language, "en", StringComparison.OrdinalIgnoreCase) ? "en" : "ru";
+        var path = Path.Combine(ModuleDirectory, "lang", $"{language}.json");
+        if (!File.Exists(path))
+            path = Path.Combine(ModuleDirectory, "lang", "en.json");
+        _translations = File.Exists(path)
+            ? JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path)) ?? new()
+            : new();
     }
 
     private int CountTeam(CsTeam team, CCSPlayerController? excluded)
